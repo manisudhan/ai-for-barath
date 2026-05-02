@@ -171,16 +171,59 @@ for pincode, group in grouped_by_pincode:
         record_ids = [n for n in cluster if not str(n).startswith(("PHONE_", "PAN_", "GSTIN_"))]
         if not record_ids: continue
             
+        # --- NEW: Extract PAN and GSTIN to serve as central anchors ---
+        cluster_pan = ""
+        cluster_gstin = ""
+        for rid in record_ids:
+            node_data = G.nodes.get(rid, {})
+            if not cluster_pan and node_data.get('pan'):
+                cluster_pan = clean_val(node_data.get('pan'))
+            if not cluster_gstin and node_data.get('gstin'):
+                cluster_gstin = clean_val(node_data.get('gstin'))
+        # --------------------------------------------------------------
+
         if len(record_ids) == 1:
             auto_merged_registry.append({
                 'ubid': f"KAR-{ubid_counter}",
                 'master_name': G.nodes[record_ids[0]].get('business_name', ''),
+                'pan_anchor': cluster_pan,       # <--- ADDED
+                'gstin_anchor': cluster_gstin,   # <--- ADDED
                 'linked_records': json.dumps(record_ids),
                 'confidence_score': 100.0,
                 'status': 'Auto-Approved (Isolated)'
             })
             ubid_counter += 1
             continue
+            
+        scores = [calculate_hybrid_score(str(G.nodes[id1].get('business_name', '')).lower(), 
+                                         str(G.nodes[id2].get('business_name', '')).lower(), model) 
+                  for id1, id2 in itertools.combinations(record_ids, 2)]
+        
+        avg_score = sum(scores) / len(scores) if scores else 0
+        master_name = max([str(G.nodes[r].get('business_name', '')) for r in record_ids], key=len)
+        
+        if avg_score >= 85:
+            auto_merged_registry.append({
+                'ubid': f"KAR-{ubid_counter}", 
+                'master_name': master_name,
+                'pan_anchor': cluster_pan,       # <--- ADDED
+                'gstin_anchor': cluster_gstin,   # <--- ADDED
+                'linked_records': json.dumps(record_ids), 
+                'confidence_score': round(avg_score, 2), 
+                'status': 'Auto-Merged'
+            })
+        else:
+            human_review_queue.append({
+                'proposed_ubid': f"PENDING-KAR-{ubid_counter}", 
+                'master_name': master_name,
+                'pan_anchor': cluster_pan,       # <--- ADDED
+                'gstin_anchor': cluster_gstin,   # <--- ADDED
+                'linked_records': json.dumps(record_ids), 
+                'confidence_score': round(avg_score, 2), 
+                'status': 'Needs Human Review'
+            })
+        ubid_counter += 1
+        continue
             
         scores = [calculate_hybrid_score(str(G.nodes[id1].get('business_name', '')).lower(), 
                                          str(G.nodes[id2].get('business_name', '')).lower(), model) 

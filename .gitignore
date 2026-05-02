@@ -1,0 +1,8 @@
+# Ignore absolutely everything by default
+*
+
+# --- ALLOWED FILES ---
+# Specifically track these files (the '!' un-ignores them)
+!.gitignore
+!part_a.py
+!part_b.py
