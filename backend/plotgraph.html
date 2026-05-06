@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Identity Resolution Graph</title>
+    <!-- Load D3.js from CDN -->
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f8fafc;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            overflow: hidden;
+        }
+        .header {
+            background-color: #0f172a;
+            color: white;
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            z-index: 10;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 1.25rem;
+            font-weight: 600;
+        }
+        select {
+            padding: 8px 12px;
+            border-radius: 6px;
+            border: none;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+        }
+        #graph-container {
+            flex-grow: 1;
+            position: relative;
+        }
+        svg {
+            width: 100%;
+            height: 100%;
+        }
+        .link {
+            stroke: #cbd5e1;
+            stroke-opacity: 0.8;
+            stroke-width: 2px;
+        }
+        .node circle {
+            stroke: #fff;
+            stroke-width: 2px;
+            cursor: grab;
+        }
+        .node:active circle {
+            cursor: grabbing;
+        }
+        .node text {
+            font-size: 10px;
+            font-weight: 600;
+            fill: #334155;
+            pointer-events: none;
+            text-shadow: 1px 1px 3px white, -1px -1px 3px white, 1px -1px 3px white, -1px 1px 3px white;
+        }
+        /* Tooltip styling */
+        .tooltip {
+            position: absolute;
+            background-color: rgba(15, 23, 42, 0.9);
+            color: white;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.2s;
+            z-index: 20;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <h1>UBID.CORE Identity Resolution Graph</h1>
+        <div>
+            <label for="pincodeFilter" style="margin-right: 10px; font-size: 14px;">Filter by Pincode:</label>
+            <select id="pincodeFilter">
+                <option value="All">All Pincodes</option>
+                <option value="560001">560001 (Dense Area)</option>
+                <option value="560058">560058 (Industrial)</option>
+                <option value="560034">560034 (Isolated)</option>
+            </select>
+        </div>
+    </div>
+
+    <div id="graph-container">
+        <div id="tooltip" class="tooltip"></div>
+    </div>
+
+    <script>
+        // 1. The High-Density Dataset
+        const rawData = {
+          "nodes": [
+            {"id": "SE-01", "label": "Global Tech India (SE)", "type": "business", "pincode": "560001"},
+            {"id": "SE-02", "label": "Bangalore Cafe (SE)", "type": "business", "pincode": "560001"},
+            {"id": "SE-03", "label": "Sunrise Agency (SE)", "type": "business", "pincode": "560001"},
+            {"id": "TL-01", "label": "Global Tech (TL)", "type": "business", "pincode": "560001"},
+            {"id": "TL-02", "label": "Sri Sai Foods (TL)", "type": "business", "pincode": "560001"},
+            {"id": "BE-01", "label": "Sunrise Agencies (BE)", "type": "business", "pincode": "560001"},
+            {"id": "PAN_PAN123", "label": "PAN: PAN123", "type": "pan", "pincode": "560001"},
+            {"id": "PHONE_9900112233", "label": "Phone: 9900112233", "type": "phone", "pincode": "560001"},
+            {"id": "PHONE_9988776655", "label": "Phone: 9988776655", "type": "phone", "pincode": "560001"},
+            {"id": "PHONE_9911223344", "label": "Phone: 9911223344", "type": "phone", "pincode": "560001"},
+            
+            {"id": "SE-04", "label": "Apex Manufacturing (SE)", "type": "business", "pincode": "560058"},
+            {"id": "SE-05", "label": "Peenya Plastics (SE)", "type": "business", "pincode": "560058"},
+            {"id": "KP-01", "label": "Apex Mfg Unit (KP)", "type": "business", "pincode": "560058"},
+            {"id": "KP-02", "label": "National Steels (KP)", "type": "business", "pincode": "560058"},
+            {"id": "BE-02", "label": "Royal Furniture (BE)", "type": "business", "pincode": "560058"},
+            {"id": "PAN_PAN456", "label": "PAN: PAN456", "type": "pan", "pincode": "560058"},
+            {"id": "PHONE_8800112233", "label": "Phone: 8800112233", "type": "phone", "pincode": "560058"},
+            {"id": "PHONE_7766554433", "label": "Phone: 7766554433", "type": "phone", "pincode": "560058"},
+            {"id": "PHONE_9944556677", "label": "Phone: 9944556677", "type": "phone", "pincode": "560058"},
+            
+            {"id": "BE-03", "label": "Koramangala IT (BE)", "type": "business", "pincode": "560034"},
+            {"id": "PAN_PAN789", "label": "PAN: PAN789", "type": "pan", "pincode": "560034"},
+            {"id": "PHONE_9999999999", "label": "Phone: 9999999999", "type": "phone", "pincode": "560034"}
+          ],
+          "links": [
+            {"source": "SE-01", "target": "PAN_PAN123"},
+            {"source": "SE-01", "target": "PHONE_9900112233"},
+            {"source": "TL-01", "target": "PAN_PAN123"},
+            {"source": "TL-01", "target": "PHONE_9900112233"},
+            {"source": "SE-02", "target": "PHONE_9988776655"},
+            {"source": "TL-02", "target": "PHONE_9988776655"},
+            {"source": "SE-03", "target": "PHONE_9911223344"},
+            {"source": "BE-01", "target": "PHONE_9911223344"},
+            
+            {"source": "SE-04", "target": "PAN_PAN456"},
+            {"source": "SE-04", "target": "PHONE_8800112233"},
+            {"source": "KP-01", "target": "PAN_PAN456"},
+            {"source": "KP-01", "target": "PHONE_8800112233"},
+            {"source": "SE-05", "target": "PHONE_7766554433"},
+            {"source": "KP-02", "target": "PHONE_9944556677"},
+            {"source": "BE-02", "target": "PHONE_9944556677"},
+            
+            {"source": "BE-03", "target": "PAN_PAN789"},
+            {"source": "BE-03", "target": "PHONE_9999999999"}
+          ]
+        };
+
+        // 2. SVG Setup
+        const container = document.getElementById("graph-container");
+        const width = container.clientWidth;
+        const height = container.clientHeight;
+
+        const svg = d3.select("#graph-container").append("svg")
+            .attr("width", width)
+            .attr("height", height);
+
+        // Add a group for semantic zooming
+        const g = svg.append("g");
+
+        // Zoom behavior
+        svg.call(d3.zoom()
+            .scaleExtent([0.5, 4])
+            .on("zoom", (event) => {
+                g.attr("transform", event.transform);
+            }));
+
+        const tooltip = d3.select("#tooltip");
+
+        // Color coding function
+        function getNodeColor(type) {
+            if (type === "phone") return "#4ade80"; // Green
+            if (type === "pan") return "#fbbf24";   // Gold/Orange
+            return "#38bdf8";                       // Light Blue (Business)
+        }
+
+        // Node size function
+        function getNodeSize(type) {
+            if (type === "business") return 14;
+            return 10;
+        }
+
+        let simulation;
+        let link, node;
+
+        // 3. Render Function
+        function renderGraph(filterPincode) {
+            // Clear previous elements
+            g.selectAll("*").remove();
+
+            // Filter data
+            let filteredNodes = rawData.nodes;
+            if (filterPincode !== "All") {
+                filteredNodes = rawData.nodes.filter(n => n.pincode === filterPincode);
+            }
+            
+            const nodeIds = new Set(filteredNodes.map(n => n.id));
+            const filteredLinks = rawData.links.filter(l => 
+                nodeIds.has(l.source.id || l.source) && nodeIds.has(l.target.id || l.target)
+            );
+
+            // Deep copy to prevent D3 from mutating the original raw data objects permanently
+            const nodes = filteredNodes.map(d => Object.create(d));
+            const links = filteredLinks.map(d => Object.create(d));
+
+            // Set up physics simulation
+            simulation = d3.forceSimulation(nodes)
+                .force("link", d3.forceLink(links).id(d => d.id).distance(100))
+                .force("charge", d3.forceManyBody().strength(-400))
+                .force("center", d3.forceCenter(width / 2, height / 2))
+                .force("collide", d3.forceCollide().radius(30));
+
+            // Draw Links
+            link = g.append("g")
+                .attr("class", "links")
+                .selectAll("line")
+                .data(links)
+                .join("line")
+                .attr("class", "link");
+
+            // Draw Nodes
+            node = g.append("g")
+                .attr("class", "nodes")
+                .selectAll("g")
+                .data(nodes)
+                .join("g")
+                .attr("class", "node")
+                .call(d3.drag()
+                    .on("start", dragstarted)
+                    .on("drag", dragged)
+                    .on("end", dragended));
+
+            // Add Circles to Nodes
+            node.append("circle")
+                .attr("r", d => getNodeSize(d.type))
+                .attr("fill", d => getNodeColor(d.type))
+                .on("mouseover", (event, d) => {
+                    tooltip.style("opacity", 1)
+                           .html(`<strong>${d.label}</strong><br/>Type: ${d.type}<br/>Pincode: ${d.pincode}`)
+                           .style("left", (event.pageX + 10) + "px")
+                           .style("top", (event.pageY - 20) + "px");
+                    d3.select(event.currentTarget).attr("stroke", "#334155").attr("stroke-width", 3);
+                })
+                .on("mouseout", (event, d) => {
+                    tooltip.style("opacity", 0);
+                    d3.select(event.currentTarget).attr("stroke", "#fff").attr("stroke-width", 2);
+                });
+
+            // Add Text Labels
+            node.append("text")
+                .attr("dx", 18)
+                .attr("dy", 4)
+                .text(d => d.label);
+
+            // Tick function to update positions
+            simulation.on("tick", () => {
+                link
+                    .attr("x1", d => d.source.x)
+                    .attr("y1", d => d.source.y)
+                    .attr("x2", d => d.target.x)
+                    .attr("y2", d => d.target.y);
+
+                node
+                    .attr("transform", d => `translate(${d.x},${d.y})`);
+            });
+        }
+
+        // 4. Drag Functions
+        function dragstarted(event, d) {
+            if (!event.active) simulation.alphaTarget(0.3).restart();
+            d.fx = d.x;
+            d.fy = d.y;
+        }
+
+        function dragged(event, d) {
+            d.fx = event.x;
+            d.fy = event.y;
+        }
+
+        function dragended(event, d) {
+            if (!event.active) simulation.alphaTarget(0);
+            d.fx = null;
+            d.fy = null;
+        }
+
+        // 5. Initialize and Handle Dropdown Changes
+        renderGraph("All");
+
+        document.getElementById("pincodeFilter").addEventListener("change", (e) => {
+            renderGraph(e.target.value);
+        });
+
+        // Handle window resize gracefully
+        window.addEventListener('resize', () => {
+            const newWidth = container.clientWidth;
+            const newHeight = container.clientHeight;
+            svg.attr("width", newWidth).attr("height", newHeight);
+            if(simulation) simulation.force("center", d3.forceCenter(newWidth / 2, newHeight / 2)).alpha(0.3).restart();
+        });
+
+    </script>
+</body>
+</html>

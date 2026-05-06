@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Karnataka UBID Omni-Search</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: { 50: '#f0fdf4', 100: '#dcfce7', 200: '#bbf7d0', 500: '#22c55e', 600: '#16a34a', 700: '#15803d', 800: '#166534', 900: '#14532d' }
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-gray-50 text-gray-800 font-sans antialiased overflow-hidden">
+    <div class="flex h-screen w-screen">
+
+        <!-- LEFT SIDEBAR -->
+        <aside class="w-64 bg-brand-900 text-white flex flex-col shadow-2xl z-20">
+            <div class="p-6 text-center border-b border-brand-800">
+                <h1 class="text-2xl font-bold tracking-wider">UBID<span class="text-brand-500">.</span>CORE</h1>
+                <p class="text-xs text-brand-200 mt-1 uppercase tracking-widest font-semibold">Govt. of Karnataka</p>
+            </div>
+            
+            <nav class="flex-1 px-4 py-8 space-y-3">
+                <a href="index.html" class="flex items-center gap-3 px-4 py-3 bg-brand-800 rounded-lg text-white font-medium border-l-4 border-brand-500 shadow-inner">
+                    <svg class="w-5 h-5 text-brand-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                    Omni-Search
+                </a>
+                <a href="upload.html" class="flex items-center gap-3 px-4 py-3 text-brand-100 hover:bg-brand-800 hover:text-white rounded-lg font-medium transition-colors border-l-4 border-transparent hover:border-brand-600">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg>
+                    Review uploads
+                </a>
+                
+            </nav>
+        </aside>
+
+        <!-- MAIN CONTENT AREA -->
+        <main class="flex-1 flex flex-col h-full bg-white relative overflow-y-auto w-full">
+            
+            <header class="px-10 py-5 flex justify-between items-center border-b border-gray-100 bg-white sticky top-0 z-10">
+                <h2 class="text-xl font-semibold text-gray-700 tracking-tight">AI For Bharat Pipeline</h2>
+                <div class="flex items-center gap-2">
+                    <span class="relative flex h-3 w-3">
+                      <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-brand-400 opacity-75"></span>
+                      <span class="relative inline-flex rounded-full h-3 w-3 bg-brand-500"></span>
+                    </span>
+                    <span class="text-brand-700 text-xs font-bold uppercase tracking-wider">Database Connected</span>
+                </div>
+            </header>
+
+            <div class="flex-1 px-8 py-12 flex flex-col items-center">
+                
+                <div class="w-full max-w-4xl text-center mt-12 mb-10">
+                    <h2 class="text-5xl font-extrabold text-brand-900 mb-4 tracking-tight">Master Registry Search</h2>
+                    <p class="text-lg text-gray-500">Query the unified business database.</p>
+                </div>
+
+                <!-- Big Search Bar -->
+                <div class="w-full max-w-3xl relative shadow-xl rounded-full group">
+                    <div class="absolute inset-y-0 left-0 pl-6 flex items-center pointer-events-none">
+                        <svg class="h-6 w-6 text-brand-600 group-focus-within:text-brand-500 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                    </div>
+                    
+                    <input type="text" id="search-input"
+                           class="w-full pl-16 pr-36 py-5 text-lg text-gray-800 bg-white border-2 border-brand-200 rounded-full focus:outline-none focus:border-brand-500 focus:ring-4 focus:ring-brand-50 transition-all placeholder-gray-400" 
+                           placeholder="Try 'active' or 'KAR-1002' or '560058'...">
+                           
+                    <button id="search-btn" class="absolute inset-y-2 right-2 px-8 bg-brand-600 hover:bg-brand-700 text-white font-semibold rounded-full shadow-md transition-all duration-200 flex items-center gap-2 hover:shadow-lg transform hover:-translate-y-px">
+                        Search
+                    </button>
+                </div>
+
+                <!-- RESULTS AREA -->
+                <div id="results-container" class="w-full max-w-4xl mt-16 text-left hidden">
+                    
+                    <div id="loading-spinner" class="text-center py-10 hidden">
+                        <svg class="animate-spin h-8 w-8 text-brand-500 mx-auto" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                    </div>
+
+                    <div id="error-message" class="text-center text-red-500 py-10 hidden font-semibold bg-red-50 rounded-lg border border-red-200 p-6"></div>
+
+                    <!-- Top Result -->
+                    <div id="top-result" class="hidden animate-fade-in-up">
+                        <!-- Content injected via JS -->
+                    </div>
+
+                    <!-- Secondary Results Table -->
+                    <div id="other-results" class="hidden animate-fade-in-up mt-8">
+                        <div class="flex justify-between items-end mb-4">
+                            <h3 class="text-sm font-bold text-gray-500 uppercase tracking-widest">Master Directory</h3>
+                            <span id="results-count" class="text-xs text-gray-400 font-mono"></span>
+                        </div>
+                        <div class="bg-white shadow-sm rounded-xl overflow-hidden border border-gray-200">
+                            <table class="w-full text-sm text-left text-gray-600">
+                                <thead class="text-xs text-gray-700 uppercase bg-gray-50 border-b border-gray-200">
+                                    <tr>
+                                        <th class="px-6 py-4 font-semibold">UBID</th>
+                                        <th class="px-6 py-4 font-semibold">Business Name</th>
+                                        <th class="px-6 py-4 font-semibold">Pincode</th>
+                                        <th class="px-6 py-4 font-semibold">PAN/GSTIN</th>
+                                        <th class="px-6 py-4 text-center font-semibold">Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="results-table-body" class="divide-y divide-gray-100">
+                                    <!-- Rows injected via JS -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- JavaScript logic -->
+    <script>
+        const searchInput = document.getElementById('search-input');
+        const searchBtn = document.getElementById('search-btn');
+        const resultsContainer = document.getElementById('results-container');
+        const loadingSpinner = document.getElementById('loading-spinner');
+        const errorMessage = document.getElementById('error-message');
+        const topResultContainer = document.getElementById('top-result');
+        const otherResultsContainer = document.getElementById('other-results');
+        const tableBody = document.getElementById('results-table-body');
+        const resultsCountLabel = document.getElementById('results-count');
+
+        // Execute immediately when the DOM loads
+        document.addEventListener('DOMContentLoaded', loadDefaultRegistry);
+
+        searchInput.addEventListener('keypress', function (e) {
+            if (e.key === 'Enter') performSearch();
+        });
+
+        searchBtn.addEventListener('click', performSearch);
+
+        async function loadDefaultRegistry() {
+            // UI Reset for load state
+            resultsContainer.classList.remove('hidden');
+            loadingSpinner.classList.remove('hidden');
+            errorMessage.classList.add('hidden');
+            topResultContainer.classList.add('hidden');
+            otherResultsContainer.classList.add('hidden');
+            tableBody.innerHTML = '';
+
+            try {
+                const response = await fetch(`http://localhost:5000/search?q=`);
+                const data = await response.json();
+
+                loadingSpinner.classList.add('hidden');
+
+                if (!response.ok) {
+                    throw new Error(data.error || "Failed to fetch database. Make sure app.py is running and Part B has been executed.");
+                }
+
+                if (data.length === 0) {
+                    errorMessage.innerText = "The Master Registry is currently empty. There is no data to show.";
+                    errorMessage.classList.remove('hidden');
+                    return;
+                }
+
+                resultsCountLabel.innerText = `Displaying ${data.length} Master Registry Records`;
+                
+                // Populate the table directly
+                data.forEach(row => {
+                    const tr = document.createElement('tr');
+                    tr.className = "hover:bg-brand-50 transition-colors cursor-pointer";
+                    tr.innerHTML = `
+                        <td class="px-6 py-4 font-mono font-medium text-brand-700">${row.ubid || 'N/A'}</td>
+                        <td class="px-6 py-4 font-semibold text-gray-800">${row.business_name || 'N/A'}</td>
+                        <td class="px-6 py-4">${row.pincode || 'N/A'}</td>
+                        <td class="px-6 py-4 font-mono text-gray-500">${row.gstin_or_pan || 'N/A'}</td>
+                        <td class="px-6 py-4 text-center">${getStatusBadge(row.activity_status)}</td>
+                    `;
+                    tableBody.appendChild(tr);
+                });
+                
+                otherResultsContainer.classList.remove('hidden');
+
+            } catch (error) {
+                loadingSpinner.classList.add('hidden');
+                errorMessage.innerText = `System Error: ${error.message}`;
+                errorMessage.classList.remove('hidden');
+            }
+        }
+
+        async function performSearch() {
+            const query = searchInput.value.trim();
+            
+            // If the user clears the search and hits enter, return to full list
+            if (query === "") {
+                return loadDefaultRegistry();
+            }
+
+            // UI Reset for search
+            resultsContainer.classList.remove('hidden');
+            loadingSpinner.classList.remove('hidden');
+            errorMessage.classList.add('hidden');
+            topResultContainer.classList.add('hidden');
+            otherResultsContainer.classList.add('hidden');
+            tableBody.innerHTML = '';
+
+            try {
+                const response = await fetch(`http://localhost:5000/search?q=${encodeURIComponent(query)}`);
+                const data = await response.json();
+
+                loadingSpinner.classList.add('hidden');
+
+                if (!response.ok) {
+                    throw new Error(data.error || "Search failed.");
+                }
+
+                if (data.length === 0) {
+                    errorMessage.innerText = "No businesses found matching your criteria.";
+                    errorMessage.classList.remove('hidden');
+                    return;
+                }
+
+                renderSearchResults(data);
+
+            } catch (error) {
+                loadingSpinner.classList.add('hidden');
+                errorMessage.innerText = `Error: ${error.message}`;
+                errorMessage.classList.remove('hidden');
+            }
+        }
+
+        function getStatusBadge(status) {
+            const s = String(status || '').toUpperCase();
+            if (s === 'ACTIVE') return `<span class="bg-brand-100 text-brand-800 text-xs font-bold px-2 py-1 rounded">ACTIVE</span>`;
+            if (s === 'DORMANT') return `<span class="bg-yellow-50 text-yellow-700 border border-yellow-200 text-xs font-bold px-2 py-1 rounded">DORMANT</span>`;
+            if (s === 'CLOSED') return `<span class="bg-red-50 text-red-700 border border-red-200 text-xs font-bold px-2 py-1 rounded">CLOSED</span>`;
+            return `<span class="bg-gray-100 text-gray-700 text-xs font-bold px-2 py-1 rounded">${s || 'UNKNOWN'}</span>`;
+        }
+
+        function renderSearchResults(results) {
+            const topResult = results[0];
+
+            // Show top result spotlight card
+            topResultContainer.innerHTML = `
+                <div class="bg-white border-l-4 border-brand-500 shadow-md hover:shadow-lg transition-shadow rounded-r-xl p-7 mb-8 relative overflow-hidden">
+                    <div class="flex justify-between items-start mb-3 relative z-10">
+                        <h3 class="text-xs font-bold text-brand-600 uppercase tracking-widest">Top Match</h3>
+                        ${getStatusBadge(topResult.activity_status)}
+                    </div>
+                    <h2 class="text-3xl font-extrabold text-gray-900 mb-2 relative z-10">${topResult.business_name || 'Unnamed Business'}</h2>
+                    <p class="text-sm text-gray-500 font-mono mb-5 bg-gray-50 inline-block px-3 py-1 rounded border border-gray-100 relative z-10">
+                        UBID: ${topResult.ubid} <span class="mx-2">|</span> ID: ${topResult.gstin_or_pan || 'N/A'}
+                    </p>
+                    <div class="grid grid-cols-2 gap-6 text-sm text-gray-600 relative z-10 bg-white/80 p-4 rounded-lg">
+                        <div><span class="block font-semibold text-gray-900 mb-1">Address:</span> ${topResult.address || 'N/A'}, ${topResult.pincode}</div>
+                        <div><span class="block font-semibold text-gray-900 mb-1">Signal Reason:</span> ${topResult.status_reason || 'N/A'}</div>
+                    </div>
+                </div>
+            `;
+            topResultContainer.classList.remove('hidden');
+
+            if (results.length > 1) {
+                resultsCountLabel.innerText = `Found ${results.length} total records`;
+                results.slice(1, 11).forEach(row => {
+                    const tr = document.createElement('tr');
+                    tr.className = "hover:bg-brand-50 transition-colors cursor-pointer";
+                    tr.innerHTML = `
+                        <td class="px-6 py-4 font-mono font-medium text-brand-700">${row.ubid || '-'}</td>
+                        <td class="px-6 py-4 font-semibold text-gray-800">${row.business_name || '-'}</td>
+                        <td class="px-6 py-4">${row.pincode || '-'}</td>
+                        <td class="px-6 py-4 font-mono text-gray-500">${row.gstin_or_pan || '-'}</td>
+                        <td class="px-6 py-4 text-center">${getStatusBadge(row.activity_status)}</td>
+                    `;
+                    tableBody.appendChild(tr);
+                });
+                otherResultsContainer.classList.remove('hidden');
+            }
+        }
+    </script>
+    <style>
+        @keyframes fadeInUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .animate-fade-in-up { animation: fadeInUp 0.4s ease-out forwards; }
+    </style>
+</body>
+</html>
