@@ -22,7 +22,6 @@
 <body class="bg-gray-50 text-gray-800 font-sans antialiased overflow-hidden">
     <div class="flex h-screen w-screen">
 
-        <!-- LEFT SIDEBAR -->
         <aside class="w-64 bg-brand-900 text-white flex flex-col shadow-2xl z-20">
             <div class="p-6 text-center border-b border-brand-800">
                 <h1 class="text-2xl font-bold tracking-wider">UBID<span class="text-brand-500">.</span>CORE</h1>
@@ -50,7 +49,6 @@
             </nav>
         </aside>
 
-        <!-- MAIN CONTENT AREA -->
         <main class="flex-1 flex flex-col h-full bg-white relative overflow-y-auto w-full">
 
             <header
@@ -73,7 +71,6 @@
                     <p class="text-lg text-gray-500">Query the unified business database.</p>
                 </div>
 
-                <!-- Big Search Bar -->
                 <div class="w-full max-w-3xl relative shadow-xl rounded-full group">
                     <div class="absolute inset-y-0 left-0 pl-6 flex items-center pointer-events-none">
                         <svg class="h-6 w-6 text-brand-600 group-focus-within:text-brand-500 transition-colors"
@@ -93,7 +90,6 @@
                     </button>
                 </div>
 
-                <!-- RESULTS AREA -->
                 <div id="results-container" class="w-full max-w-4xl mt-16 text-left hidden">
 
                     <div id="loading-spinner" class="text-center py-10 hidden">
@@ -111,12 +107,9 @@
                         class="text-center text-red-500 py-10 hidden font-semibold bg-red-50 rounded-lg border border-red-200 p-6">
                     </div>
 
-                    <!-- Top Result -->
                     <div id="top-result" class="hidden animate-fade-in-up">
-                        <!-- Content injected via JS -->
-                    </div>
+                        </div>
 
-                    <!-- Secondary Results Table -->
                     <div id="other-results" class="hidden animate-fade-in-up mt-8">
                         <div class="flex justify-between items-end mb-4">
                             <h3 class="text-sm font-bold text-gray-500 uppercase tracking-widest">Master Directory</h3>
@@ -134,8 +127,7 @@
                                     </tr>
                                 </thead>
                                 <tbody id="results-table-body" class="divide-y divide-gray-100">
-                                    <!-- Rows injected via JS -->
-                                </tbody>
+                                    </tbody>
                             </table>
                         </div>
                     </div>
@@ -145,7 +137,6 @@
         </main>
     </div>
 
-    <!-- JavaScript logic -->
     <script>
         const searchInput = document.getElementById('search-input');
         const searchBtn = document.getElementById('search-btn');
@@ -157,8 +148,8 @@
         const tableBody = document.getElementById('results-table-body');
         const resultsCountLabel = document.getElementById('results-count');
 
-        // Execute immediately when the DOM loads
-        document.addEventListener('DOMContentLoaded', loadDefaultRegistry);
+        // Execute immediately, no waiting for DOMContentLoaded
+        loadDefaultRegistry();
 
         searchInput.addEventListener('keypress', function (e) {
             if (e.key === 'Enter') performSearch();
@@ -167,7 +158,6 @@
         searchBtn.addEventListener('click', performSearch);
 
         async function loadDefaultRegistry() {
-            // UI Reset for load state
             resultsContainer.classList.remove('hidden');
             loadingSpinner.classList.remove('hidden');
             errorMessage.classList.add('hidden');
@@ -186,7 +176,7 @@
                 loadingSpinner.classList.add('hidden');
 
                 if (!response.ok) {
-                    throw new Error(data.error || "Failed to fetch database. Make sure app.py is running and Part B has been executed.");
+                    throw new Error(data.error || "Failed to fetch database. Make sure app.py is running.");
                 }
 
                 if (data.length === 0) {
@@ -197,7 +187,6 @@
 
                 resultsCountLabel.innerText = `Displaying ${data.length} Master Registry Records`;
 
-                // Populate the table directly
                 data.forEach(row => {
                     const tr = document.createElement('tr');
                     tr.className = "hover:bg-brand-50 transition-colors cursor-pointer";
@@ -223,12 +212,10 @@
         async function performSearch() {
             const query = searchInput.value.trim();
 
-            // If the user clears the search and hits enter, return to full list
             if (query === "") {
                 return loadDefaultRegistry();
             }
 
-            // UI Reset for search
             resultsContainer.classList.remove('hidden');
             loadingSpinner.classList.remove('hidden');
             errorMessage.classList.add('hidden');
@@ -276,7 +263,6 @@
         function renderSearchResults(results) {
             const topResult = results[0];
 
-            // Show top result spotlight card
             topResultContainer.innerHTML = `
                 <div class="bg-white border-l-4 border-brand-500 shadow-md hover:shadow-lg transition-shadow rounded-r-xl p-7 mb-8 relative overflow-hidden">
                     <div class="flex justify-between items-start mb-3 relative z-10">

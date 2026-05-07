@@ -22,7 +22,6 @@
 <body class="bg-gray-50 text-gray-800 font-sans antialiased overflow-hidden">
     <div class="flex h-screen w-screen">
 
-        <!-- LEFT SIDEBAR -->
         <aside class="w-64 bg-brand-900 text-white flex flex-col shadow-2xl z-20">
             <div class="p-6 text-center border-b border-brand-800">
                 <h1 class="text-2xl font-bold tracking-wider">UBID<span class="text-brand-500">.</span>CORE</h1>
@@ -45,8 +44,7 @@
                     </svg>
                     Reviews
                 </a>
-                <!-- Human Review (Active) -->
-                <a href="review.html"
+                <a href="upload.html"
                     class="flex items-center gap-3 px-4 py-3 bg-brand-800 rounded-lg text-white font-medium border-l-4 border-brand-500 shadow-inner">
                     <svg class="w-5 h-5 text-brand-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -57,7 +55,6 @@
             </nav>
         </aside>
 
-        <!-- MAIN CONTENT AREA -->
         <main class="flex-1 flex flex-col h-full bg-white relative overflow-y-auto w-full">
             <header
                 class="px-10 py-5 flex justify-between items-center border-b border-gray-100 bg-white sticky top-0 z-10">
@@ -71,7 +68,6 @@
                         UBID and moved to the Master Registry.</p>
                 </div>
 
-                <!-- Review Table -->
                 <div class="w-full max-w-6xl bg-white shadow-xl rounded-xl border border-gray-200 overflow-hidden">
                     <div id="loading-spinner" class="text-center py-10">
                         <svg class="animate-spin h-8 w-8 text-brand-500 mx-auto" xmlns="http://www.w3.org/2000/svg"
@@ -96,8 +92,7 @@
                             </tr>
                         </thead>
                         <tbody id="review-table-body" class="divide-y divide-gray-100">
-                            <!-- Rows injected here by JS -->
-                        </tbody>
+                            </tbody>
                     </table>
 
                     <div id="empty-state" class="hidden text-center py-16 animate-fade-in-up">
@@ -128,9 +123,9 @@
         </main>
     </div>
 
-    <!-- JavaScript logic -->
     <script>
-        document.addEventListener('DOMContentLoaded', loadReviewQueue);
+        // Execute immediately, no waiting for DOMContentLoaded
+        loadReviewQueue();
 
         async function loadReviewQueue() {
             try {
@@ -191,7 +186,6 @@
         }
 
         async function processRecord(ubid, action) {
-            // Confirm destructive action
             if (action === 'reject' && !confirm("Are you sure you want to permanently reject and discard this linkage?")) {
                 return;
             }
@@ -209,7 +203,6 @@
                 const result = await response.json();
 
                 if (response.ok) {
-                    // Remove the row from the UI with a fade out effect
                     const row = document.getElementById(`row-${ubid}`);
                     row.style.opacity = '0';
                     setTimeout(() => row.remove(), 300);
@@ -223,5 +216,4 @@
         }
     </script>
 </body>
-
 </html>

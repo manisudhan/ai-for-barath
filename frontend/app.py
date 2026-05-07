@@ -10,17 +10,13 @@ from dotenv import load_dotenv
 from sentence_transformers import SentenceTransformer
 from sklearn.metrics.pairwise import cosine_similarity
 
-from flask_cors import CORS
-
+# Initialize App ONCE with explicit CORS
 app = Flask(__name__)
-CORS(app, resources={r"/*": {"origins": "*"}}) # Explicitly allow all origins
+CORS(app, resources={r"/*": {"origins": "*"}}) 
 
 # Silence warnings
 os.environ['TRANSFORMERS_NO_ADVISORY_WARNINGS'] = 'true'
 warnings.filterwarnings("ignore")
-
-app = Flask(__name__)
-CORS(app)
 
 # ==========================================
 # SECURE DATABASE CONFIGURATION (NeonDB)
@@ -123,12 +119,9 @@ def search_database():
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
-# ---> UPDATED ROUTES <---
 @app.route('/review_queue', methods=['GET'])
 def get_review_queue():
     try:
-        # FIX 1: Limit the payload to 100 records at a time.
-        # This stops the frontend from trying to render thousands of rows and lagging out.
         query = "SELECT * FROM db_human_review_queue LIMIT 100"
         df = pd.read_sql(query, engine).fillna("")
         return jsonify(df.to_dict('records')), 200
@@ -160,17 +153,12 @@ def process_review():
                 row_dict['ubid'] = new_ubid
                 df = pd.DataFrame([row_dict])
                 
-                # FIX 2a: Write to the staging table (original logic)
                 df.to_sql('db_auto_complete_ubids', conn, if_exists='append', index=False)
-                
-                # FIX 2b: Immediately write to the final master registry so it exists globally
                 df.to_sql('db_final_master_registry', conn, if_exists='append', index=False)
 
             delete_query = text("DELETE FROM db_human_review_queue WHERE ubid = :ubid")
             conn.execute(delete_query, {"ubid": target_ubid})
 
-        # FIX 3: Automatically refresh the in-memory Pandas search index 
-        # so the Home Page updates with the new data instantly.
         if action == 'accept':
             refresh_search_index()
 
