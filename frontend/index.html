@@ -137,6 +137,8 @@
         </main>
     </div>
 
+    <script src="config.js"></script>
+
     <script>
         const searchInput = document.getElementById('search-input');
         const searchBtn = document.getElementById('search-btn');
@@ -148,7 +150,7 @@
         const tableBody = document.getElementById('results-table-body');
         const resultsCountLabel = document.getElementById('results-count');
 
-        // Execute immediately, no waiting for DOMContentLoaded
+        // Execute immediately
         loadDefaultRegistry();
 
         searchInput.addEventListener('keypress', function (e) {
@@ -166,7 +168,7 @@
             tableBody.innerHTML = '';
 
             try {
-                const response = await fetch(`https://unconvergent-milo-laciniate.ngrok-free.dev/search`, {
+                const response = await fetch(`${CONFIG.API_BASE_URL}/search`, {
                     headers: {
                         "ngrok-skip-browser-warning": "69420"
                     }
@@ -224,7 +226,7 @@
             tableBody.innerHTML = '';
 
             try {
-                const response = await fetch(`https://unconvergent-milo-laciniate.ngrok-free.dev/search?q=${encodeURIComponent(query)}`, {
+                const response = await fetch(`${CONFIG.API_BASE_URL}/search?q=${encodeURIComponent(query)}`, {
                     headers: {
                         "ngrok-skip-browser-warning": "69420"
                     }

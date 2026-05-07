@@ -123,13 +123,15 @@
         </main>
     </div>
 
+    <script src="config.js"></script>
+
     <script>
-        // Execute immediately, no waiting for DOMContentLoaded
+        // Execute immediately
         loadReviewQueue();
 
         async function loadReviewQueue() {
             try {
-                const response = await fetch('https://unconvergent-milo-laciniate.ngrok-free.dev/review_queue', {
+                const response = await fetch(`${CONFIG.API_BASE_URL}/review_queue`, {
                     headers: {
                         "ngrok-skip-browser-warning": "69420"
                     }
@@ -191,7 +193,7 @@
             }
 
             try {
-                const response = await fetch('https://unconvergent-milo-laciniate.ngrok-free.dev/process_review', {
+                const response = await fetch(`${CONFIG.API_BASE_URL}/process_review`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
